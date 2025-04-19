@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graphics 30 MARKS TEST</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7fc;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Fixed Navbar */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #3f038f;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 24px;
+            z-index: 1000;
+        }
+
+        /* Timer styling under the navbar */
+        .timer {
+            text-align: right;
+            font-size: 18px;
+            margin: 20px 20px;
+            position: fixed;
+            top: 30px;
+            right: 0;
+            padding: 12px 24px;
+            background-color: #3f038f;
+            color: white;
+            border-radius: 10px;
+        }
+
+        /* Center the quiz container with padding */
+        .quiz-container {
+            padding: 20px;
+            margin: 0 auto;
+            width: 70%;
+            max-width: 900px;
+            margin-top: 100px;
+            /* Space for fixed navbar */
+        }
+
+        .question-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            padding: 15px;
+        }
+
+        .question-container p {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .question-container input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        button {
+            background-color: #3f038f;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #5e0cbe;
+        }
+
+        .result-popup,
+        .answer-page {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            z-index: 999;
+            width: 80%;
+            max-width: 500px;
+            z-index: 1111111;
+        }
+
+        .result-popup h2,
+        .answer-page h2 {
+            margin-bottom: 20px;
+        }
+
+        .answer-page p {
+            text-align: left;
+            margin: 10px 0;
+            padding: 5px;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+        }
+
+        .correct-answer {
+            color: #4caf50;
+        }
+
+        .incorrect-answer {
+            color: #f44336;
+        }
+
+        .highlight {
+            background-color: #ffeb3b;
+        }
+
+        .highlight-btn {
+            background-color: #ff5722;
+        }
+
+        .form-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .form-box {
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            width: 300px;
+            /* Set fixed width for form popup */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .form-box input {
+            margin-bottom: 10px;
+            padding: 8px;
+            width: 100%;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .form-box button {
+            width: 100%;
+            padding: 10px;
+        }
+
+        .pie-chart-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 250px;
+            margin: 20px 0;
+        }
+
+        .result-info {
+            margin-bottom: 20px;
+        }
+
+        .score-percentage {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .time-taken {
+            font-size: 16px;
+            color: #555;
+        }
+
+        /* Adjusting for better positioning of the form */
+        .form-box input,
+        .form-box button {
+            margin: 5px 0;
+        }
+
+        .navbar {
+            width: 100%;
+            height: 100px;
+            background-color: #3f038f;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 100px;
+            box-sizing: border-box;
+
+        }
+
+        .navbar img {
+            height: 65%;
+        }
+
+        .navbar h1 {
+            color: white;
+        }
+
+        .navbar button {
+            background-color: white;
+            color: black;
+            font-weight: bolder;
+        }
+
+
+        @media only screen and (max-width:540px) {
+            .navbar {
+                height: 50px;
+                padding: 0 30px;
+            }
+
+            .navbar h1 {
+                font-size: 12px;
+            }
+
+            .navbar button {
+                padding: 5px 15px;
+            }
+        }
+
+        /* Scrollable Answer List */
+        .answers-list-container {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        /* Close button positioning */
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .hideBox {
+            width: 100%;
+            height: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.447);
+            z-index: 11;
+            display: none;
+
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="hideBox"></div>
+
+
+    <nav class="navbar"><img src="next-academy-logo.png" alt="">
+        <h1>Graphics Test</h1> <button>30 Marks</button>
+    </nav>
+
+    <!-- Popup to collect student details -->
+    <div id="student-popup" class="form-container">
+        <div class="form-box">
+            <h2>Enter Your Details</h2>
+            <form id="student-form">
+                <input type="text" id="student-name" placeholder="Name" required>
+                <input type="text" id="student-roll" placeholder="Roll Number" required>
+                <button type="submit">Start Quiz</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Quiz Section -->
+    <div class="quiz-container" style="display:none;">
+
+        <!-- timer  -->
+        <div class="timer" id="timer">Time Left: 10:00</div>
+
+        <!-- Questions Attached in Bootstrap -->
+        <div id="quiz-content"></div>
+
+        <button onclick="submitQuiz()">Submit Quiz</button>
+    </div>
+
+    <!-- Result Popup -->
+    <div id="result-popup" class="result-popup">
+        <button class="course Name">Graphics (30 MARKS)</button>
+        <h2><span id="student-name-result"></span></h2>
+        <div class="result-info">
+            <p id="result-msg"></p>
+            <p class="score-percentage" id="score-percentage"></p>
+            <p class="time-taken" id="time-taken"></p>
+        </div>
+        <div class="pie-chart-container">
+            <canvas id="result-pie-chart"></canvas>
+        </div>
+        <button id="show-answers-btn" onclick="showAnswers()">Show Correct Answers</button>
+    </div>
+
+    <!-- Answer Review Page -->
+    <div id="answer-page" class="answer-page">
+        <button class="close-btn" onclick="closeAnswers()">Close</button>
+        <h2>Correct Answers</h2>
+        <div id="answers-list" class="answers-list-container"></div>
+    </div>
+
+
+    <script>
+        // Timer Setup
+        let timeLeft = 10 * 60; // 10 minutes in seconds
+        let timer;
+        let startTime;
+
+        function startTimer() {
+            startTime = Date.now();
+            timer = setInterval(() => {
+                timeLeft--;
+                let minutes = Math.floor(timeLeft / 60);
+                let seconds = timeLeft % 60;
+                document.getElementById("timer").textContent = `Time Left: ${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    alert("Time's up!");
+                    submitQuiz();
+                }
+            }, 1000);
+        }
+
+        // Dynamic Quiz Content
+        const questions = [
+  {
+    "question": "CorelDRAW is mainly used for:",
+    "options": ["Coding", "Vector Graphic Design", "3D Modeling", "Animation"],
+    "correct": 1
+  },
+  {
+    "question": "What is the default file extension in CorelDRAW?",
+    "options": [".cdr", ".psd", ".ai", ".pdf"],
+    "correct": 0
+  },
+  {
+    "question": "Which tool is used to select objects in CorelDRAW?",
+    "options": ["Zoom Tool", "Pick Tool", "Freehand Tool", "Text Tool"],
+    "correct": 1
+  },
+  {
+    "question": "Which menu is used for alignment of objects?",
+    "options": ["Edit", "Arrange", "View", "File"],
+    "correct": 1
+  },
+  {
+    "question": "What is the shortcut to group objects in CorelDRAW?",
+    "options": ["Ctrl + G", "Ctrl + U", "Ctrl + C", "Ctrl + D"],
+    "correct": 0
+  },
+  {
+    "question": "What is the purpose of the Shape Tool in CorelDRAW?",
+    "options": ["Draw shapes", "Modify nodes and curves", "Add text", "Zoom in"],
+    "correct": 1
+  },
+  {
+    "question": "Which command is used to convert text to curves?",
+    "options": ["Convert to Text", "Convert to Shape", "Convert to Curves", "Convert to Path"],
+    "correct": 2
+  },
+  {
+    "question": "CorelDRAW uses which type of graphics?",
+    "options": ["Raster", "Bitmap", "Vector", "Pixel"],
+    "correct": 2
+  },
+  {
+    "question": "The toolbox is located at which side by default?",
+    "options": ["Top", "Bottom", "Left", "Right"],
+    "correct": 2
+  },
+  {
+    "question": "Which of the following is not a tool in CorelDRAW?",
+    "options": ["Pen Tool", "Pick Tool", "Freehand Tool", "Move Tool"],
+    "correct": 3
+  },
+  {
+    "question": "Photoshop is best suited for:",
+    "options": ["Video Editing", "Raster Image Editing", "CAD Design", "Word Processing"],
+    "correct": 1
+  },
+  {
+    "question": "The file extension for a Photoshop project file is:",
+    "options": [".jpg", ".psd", ".ai", ".cdr"],
+    "correct": 1
+  },
+  {
+    "question": "Which tool is used to remove the background?",
+    "options": ["Eraser Tool", "Lasso Tool", "Magic Wand Tool", "Clone Stamp Tool"],
+    "correct": 2
+  },
+  {
+    "question": "Shortcut for duplicating a layer is:",
+    "options": ["Ctrl + C", "Ctrl + D", "Ctrl + J", "Ctrl + E"],
+    "correct": 2
+  },
+  {
+    "question": "The Move Tool shortcut is:",
+    "options": ["M", "V", "T", "E"],
+    "correct": 1
+  },
+  {
+    "question": "The Clone Stamp Tool is used to:",
+    "options": ["Paint", "Erase objects", "Copy pixels from one area to another", "Select shapes"],
+    "correct": 2
+  },
+  {
+    "question": "To undo an action, the shortcut is:",
+    "options": ["Ctrl + X", "Ctrl + Y", "Ctrl + Z", "Ctrl + U"],
+    "correct": 2
+  },
+  {
+    "question": "The tool used to draw selections with straight lines:",
+    "options": ["Lasso Tool", "Magnetic Lasso Tool", "Polygonal Lasso Tool", "Marquee Tool"],
+    "correct": 2
+  },
+  {
+    "question": "Which of these is a blending mode?",
+    "options": ["Brush", "Overlay", "Raster", "Layer"],
+    "correct": 1
+  },
+  {
+    "question": "What is the function of the History Panel?",
+    "options": ["Manage fonts", "Undo multiple actions", "Create animations", "Save files"],
+    "correct": 1
+  },
+  {
+    "question": "Illustrator creates which type of graphics?",
+    "options": ["Raster", "Bitmap", "Vector", "3D"],
+    "correct": 2
+  },
+  {
+    "question": "The default file format of Illustrator is:",
+    "options": [".psd", ".ai", ".cdr", ".indd"],
+    "correct": 1
+  },
+  {
+    "question": "What is the Pen Tool used for?",
+    "options": ["Creating gradients", "Painting", "Drawing paths", "Writing text"],
+    "correct": 2
+  },
+  {
+    "question": "To group objects in Illustrator, use:",
+    "options": ["Ctrl + C", "Ctrl + J", "Ctrl + G", "Ctrl + U"],
+    "correct": 2
+  },
+  {
+    "question": "Which panel allows you to manage objects stacking order?",
+    "options": ["Tools", "Layers", "Gradient", "Color"],
+    "correct": 1
+  },
+  {
+    "question": "The Pathfinder panel is used to:",
+    "options": ["Create animations", "Save layers", "Combine and divide shapes", "Fill colors"],
+    "correct": 2
+  },
+  {
+    "question": "Which tool helps in adjusting anchor points?",
+    "options": ["Type Tool", "Selection Tool", "Direct Selection Tool", "Zoom Tool"],
+    "correct": 2
+  },
+  {
+    "question": "Shortcut to switch to Selection Tool is:",
+    "options": ["A", "V", "S", "T"],
+    "correct": 1
+  },
+  {
+    "question": "Illustrator artwork can be scaled without losing quality because it is:",
+    "options": ["Raster-based", "Web-based", "Vector-based", "Bitmap-based"],
+    "correct": 2
+  },
+  {
+    "question": "Which color modes are commonly used in Illustrator?",
+    "options": ["RGB and CMYK", "RYB and LAB", "RGB and Grayscale", "Bitmap and Indexed"],
+    "correct": 0
+  }
+];
+
+        // Load Quiz Again
+        function loadQuiz() {
+            const quizContent = document.getElementById("quiz-content");
+            quizContent.innerHTML = ""; // Clear previous questions
+            questions.forEach((q, index) => {
+                let questionHTML = `
+                    <div class="question-container">
+                        <p>${index + 1}. ${q.question}</p>
+                        ${q.options.map((option, i) =>
+                    `<input type="radio" name="q${index}" value="${i}" id="q${index}-opt${i}"> 
+                            <label for="q${index}-opt${i}">${option}</label><br>`).join('')}
+                    </div>`;
+                quizContent.innerHTML += questionHTML;
+            });
+        }
+
+        let answers = [];
+
+        function submitQuiz() {
+            const button = document.getElementById("show-answers-btn");
+            button.disabled = true;
+            button.innerText = "Please wait...";
+
+            // Re-enable after 60 seconds (60000 ms)
+            setTimeout(() => {
+                button.disabled = false;
+                button.innerText = "Show Answers";
+            }, 60000);
+
+            clearInterval(timer);
+            let score = 0;
+            answers = [];
+            questions.forEach((q, index) => {
+                const selectedAnswer = document.querySelector(`input[name="q${index}"]:checked`);
+                const correctAnswer = q.correct;
+                const userAnswer = selectedAnswer ? parseInt(selectedAnswer.value) : null;
+                let hiddenBox = document.querySelector('.hideBox');
+
+                hiddenBox.style.display = "flex";
+                answers.push({
+                    question: q.question,
+                    options: q.options,
+                    correctAnswer: q.options[correctAnswer],
+                    selectedAnswer: userAnswer !== null ? q.options[userAnswer] : 'None',
+                    isCorrect: userAnswer === correctAnswer
+                });
+                if (userAnswer === correctAnswer) score++;
+
+            });
+
+            const totalQuestions = questions.length;
+            const percentage = Math.round((score / totalQuestions) * 100);
+
+            // Calculate the time taken in minutes and seconds
+            const elapsedTimeInSeconds = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(elapsedTimeInSeconds / 60);
+            const seconds = elapsedTimeInSeconds % 60;
+
+            // Displaying results
+            document.getElementById("student-name-result").textContent = document.getElementById("student-name").value;
+            document.getElementById("result-msg").textContent = `You answered ${score} out of ${totalQuestions} questions correctly.`;
+            document.getElementById("score-percentage").textContent = `Your score: ${percentage}%`;
+            document.getElementById("time-taken").textContent = `Time taken: ${minutes} minutes ${seconds} seconds`;
+
+            // Displaying the Pie Chart
+            const ctx = document.getElementById('result-pie-chart').getContext('2d');
+            const resultPieChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Correct', 'Incorrect'],
+                    datasets: [{
+                        label: 'Quiz Result',
+                        data: [score, totalQuestions - score],
+                        backgroundColor: ['#4caf50', '#f44336'],
+                    }]
+                }
+            });
+
+            // Show the result popup
+            document.getElementById("result-popup").style.display = 'block';
+        }
+
+        function showAnswers() {
+
+
+
+            const answersList = document.getElementById("answers-list");
+            answersList.innerHTML = '';
+            answers.forEach((answer, index) => {
+                const isCorrectClass = answer.isCorrect ? 'correct-answer' : 'incorrect-answer';
+                answersList.innerHTML += `
+                    <p>${index + 1}. ${answer.question}
+                        <br><strong>Correct Answer:</strong> <span class="${isCorrectClass}">${answer.correctAnswer}</span>
+                        <br><strong>Your Answer:</strong> <span class="${isCorrectClass}">${answer.selectedAnswer}</span>
+                    </p>`;
+            });
+            document.getElementById("answer-page").style.display = 'block';
+
+
+        }
+
+        function closeAnswers() {
+            document.getElementById("answer-page").style.display = 'none';
+        }
+
+        // Show student form popup at the start
+        document.getElementById("student-popup").style.display = 'block';
+
+        // Start the quiz when student form is submitted
+        document.getElementById("student-form").addEventListener("submit", function (e) {
+            e.preventDefault();
+            document.getElementById("student-popup").style.display = 'none';
+            document.querySelector(".quiz-container").style.display = 'block';
+            startTimer();
+            loadQuiz();
+        });
+
+
+    </script>
+    <script>
+        // Disable right-click
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
+
+        // Block keys like F12, Ctrl+Shift+I, etc.
+        document.addEventListener('keydown', (e) => {
+            if (
+                e.key === "F12" || // Dev tools
+                (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "i") || // Ctrl+Shift+I
+                (e.ctrlKey && e.key.toLowerCase() === "u") // View Source
+            ) {
+                e.preventDefault();
+            }
+        });
+    </script>
+
+</body>
+
+</html>
